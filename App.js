@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {StyleSheet, Platform, ToastAndroid} from 'react-native';
 import {
-  ViroImage,
   ViroNode,
   ViroARScene,
   ViroText,
@@ -46,8 +45,8 @@ const distanceBetweenPoints = (p1, p2) => {
 const styles = StyleSheet.create({
   helloWorldTextStyle: {
     fontFamily: 'Arial',
-    fontSize: 60,
-    color: '#ffffff',
+    fontSize: 20,
+    color: '#000000',
     textAlignVertical: 'center',
     textAlign: 'center',
   },
@@ -74,6 +73,7 @@ class HelloWorldSceneAR extends Component {
   }
 
   componentDidMount() {
+    console.log('componentDidMount');
     const permissions = Platform.select({
       ios: [PERMISSIONS.IOS.CAMERA, PERMISSIONS.IOS.LOCATION_WHEN_IN_USE],
       android: [
@@ -138,7 +138,8 @@ class HelloWorldSceneAR extends Component {
       };
 
       this.listener = Geolocation.watchPosition(geoSuccess, (error) => {}, {
-        distanceFilter: 10,
+        distanceFilter: 500,
+        // distanceFilter: 10,
       });
     }
   };
@@ -179,20 +180,26 @@ class HelloWorldSceneAR extends Component {
     return {x: objDeltaX, z: -objDeltaY};
   };
 
-  getNearbyPlaces = async () => {
+  getNearbyPlaces = () => {
     let places = [
-      {
-        id: 2,
-        title: 'Auchan',
-        lat: 45.732921282277765,
-        lng: 21.261466912687162,
-        // icon: ,
-      },
+      // {
+      //   id: 1,
+      //   title: 'Auchan',
+      //   lat: 45.732921282277765,
+      //   lng: 21.261466912687162,
+      // },
+      // {
+      //   id: 1,
+      //   title: 'Piața Victoriei',
+      //   lat: 45.75399421815254,
+      //   lng: 21.225668417349045,
+      //   // icon: ,
+      // },
       {
         id: 1,
-        title: 'Piața Victoriei',
-        lat: 45.75399421815254,
-        lng: 21.225668417349045,
+        title: 'Stadion',
+        lat: 45.740478738437055,
+        lng: 21.243871276341913,
         // icon: ,
       },
     ];
@@ -204,6 +211,7 @@ class HelloWorldSceneAR extends Component {
     if (this.state.nearbyPlaces.length === 0) {
       return undefined;
     }
+    console.log('placeARObjects');
 
     let ARTags = this.state.nearbyPlaces.map((item) => {
       const coords = this.transformGpsToAR(item.lat, item.lng);
@@ -212,12 +220,22 @@ class HelloWorldSceneAR extends Component {
         latitude: item.lat,
         longitude: item.lng,
       });
+      // console.log(coords);
+      // coords.x = parseFloat(coords.x.toFixed(1));
+      // coords.z = parseFloat(coords.z.toFixed(1));
+
       return (
         <ViroNode
           key={item.id}
           scale={[scale, scale, scale]}
           rotation={[0, 0, 0]}
-          position={[coords.x, 0, coords.z]}>
+          position={[coords.x, 0, coords.z]}
+          // physicsBody={{
+          //   type: 'Kinematic',
+          //   mass: 0,
+          //   shape: {type: 'Compound'},
+          // }}
+        >
           <ViroFlexView
             style={{alignItems: 'center', justifyContent: 'center'}}>
             <ViroText
@@ -243,9 +261,17 @@ class HelloWorldSceneAR extends Component {
         </ViroNode>
       );
     });
-
     return ARTags;
   };
+
+  shouldComponentUpdate(nextProps: Readonly<P>, nextState: Readonly<S>) {
+    // console.log('Locations: ' + stringifySafe(this.state.nearbyPlaces));
+    // console.log('Locations: ' + stringifySafe(nextState.nearbyPlaces));
+    return (
+      this.state.location !== nextState.location ||
+      this.state.nearbyPlaces !== nextState.nearbyPlaces
+    );
+  }
 
   render() {
     return (
@@ -258,6 +284,7 @@ class HelloWorldSceneAR extends Component {
   }
 
   _onInitialized(state, reason) {
+    console.log('_onInitialized');
     this.setState(
       {
         tracking:
