@@ -45,7 +45,7 @@ const distanceBetweenPoints = (p1, p2) => {
 const styles = StyleSheet.create({
   helloWorldTextStyle: {
     fontFamily: 'Arial',
-    fontSize: 20,
+    fontSize: 30,
     color: '#000000',
     textAlignVertical: 'center',
     textAlign: 'center',
@@ -138,8 +138,8 @@ class HelloWorldSceneAR extends Component {
       };
 
       this.listener = Geolocation.watchPosition(geoSuccess, (error) => {}, {
-        distanceFilter: 500,
-        // distanceFilter: 10,
+        // distanceFilter: 500,
+        distanceFilter: 10,
       });
     }
   };
@@ -182,24 +182,31 @@ class HelloWorldSceneAR extends Component {
 
   getNearbyPlaces = () => {
     let places = [
-      // {
-      //   id: 1,
-      //   title: 'Auchan',
-      //   lat: 45.732921282277765,
-      //   lng: 21.261466912687162,
-      // },
-      // {
-      //   id: 1,
-      //   title: 'Piața Victoriei',
-      //   lat: 45.75399421815254,
-      //   lng: 21.225668417349045,
-      //   // icon: ,
-      // },
       {
         id: 1,
+        title: 'Auchan',
+        lat: 45.732921282277765,
+        lng: 21.261466912687162,
+      },
+      {
+        id: 2,
+        title: 'Piața Victoriei',
+        lat: 45.75399421815254,
+        lng: 21.225668417349045,
+        // icon: ,
+      },
+      {
+        id: 3,
         title: 'Stadion',
         lat: 45.740478738437055,
         lng: 21.243871276341913,
+        // icon: ,
+      },
+      {
+        id: 4,
+        title: 'Heaven',
+        lat: 45.73977513872625,
+        lng: 21.248956661593834,
         // icon: ,
       },
     ];
@@ -230,16 +237,15 @@ class HelloWorldSceneAR extends Component {
           scale={[scale, scale, scale]}
           rotation={[0, 0, 0]}
           position={[coords.x, 0, coords.z]}
-          // physicsBody={{
-          //   type: 'Kinematic',
-          //   mass: 0,
-          //   shape: {type: 'Compound'},
-          // }}
-        >
+          physicsBody={{
+            type: 'Kinematic',
+            mass: 0,
+            shape: {type: 'Compound'},
+          }}>
           <ViroFlexView
             style={{alignItems: 'center', justifyContent: 'center'}}>
             <ViroText
-              width={4}
+              width={6}
               height={0.5}
               text={item.title}
               style={styles.helloWorldTextStyle}
@@ -247,6 +253,13 @@ class HelloWorldSceneAR extends Component {
             <ViroText
               width={4}
               height={0.5}
+              text={`${Number(distance).toFixed(2)} km`}
+              style={styles.helloWorldTextStyle}
+              position={[0, -0.75, 0]}
+            />
+            <ViroText
+              width={4}
+              height={0.5} //45.73977513872625, 21.248956661593834
               text={`${Number(distance).toFixed(2)} km`}
               style={styles.helloWorldTextStyle}
               position={[0, -0.75, 0]}
@@ -261,6 +274,9 @@ class HelloWorldSceneAR extends Component {
         </ViroNode>
       );
     });
+
+    console.log('Got ' + ARTags.length + ' Artags!');
+    // console.log(ARTags);
     return ARTags;
   };
 
@@ -269,8 +285,10 @@ class HelloWorldSceneAR extends Component {
     // console.log('Locations: ' + stringifySafe(nextState.nearbyPlaces));
     return (
       this.state.location !== nextState.location ||
-      this.state.nearbyPlaces !== nextState.nearbyPlaces
+      this.state.nearbyPlaces !== nextState.nearbyPlaces ||
+      this.state.tracking !== nextState.tracking
     );
+    // return true;
   }
 
   render() {
@@ -295,9 +313,7 @@ class HelloWorldSceneAR extends Component {
         if (this.state.tracking) {
           Toast('All set!');
         } else {
-          Toast(
-            `Move your device around gently to calibrate AR (${reason}) and compass.`,
-          );
+          Toast('Move your device around gently to calibrate AR and compass.');
         }
       },
     );
