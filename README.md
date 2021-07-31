@@ -38,3 +38,31 @@ After getting a key, set it on the `MAPS_API_KEY` constant on App.js line 25.
 <a href="https://discord.gg/YfxDBGTxvG">
    <img src="https://discordapp.com/api/guilds/774471080713781259/widget.png?style=banner2" alt="Discord Banner 2"/>
 </a>
+
+
+[comment]: <> (TODO delete this)
+# Notes
+
+- error at starting the app try:
+
+```shell
+chmod 755 android/gradlew 
+```
+
+- android problems
+
+```shell
+export ANDROID_SDK_ROOT=/home/vlad/Android/Sdk
+```
+
+- adb problems mismatch
+
+```shell
+rm /usr/bin/adb
+sudo cp /home/vlad/Android/Sdk/platform-tools/adb  /usr/bin/
+```
+
+- tcp problem
+
+```shell
+adb -s <device> reverse tcp:8081 tcp:8081
