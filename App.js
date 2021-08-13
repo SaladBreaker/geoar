@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   helloWorldTextStyle: {
     fontFamily: 'Arial',
     fontSize: 30,
-    color: '#000000',
+    color: '#ff0000',
     textAlignVertical: 'center',
     textAlign: 'center',
   },
@@ -59,16 +59,43 @@ class HelloWorldSceneAR extends Component {
       cameraReady: false,
       locationReady: false,
       location: undefined,
-      nearbyPlaces: [],
+      nearbyPlaces: [
+        {
+          id: 1,
+          title: 'Auchan',
+          lat: 45.732921282277765,
+          lng: 21.261466912687162,
+        },
+        {
+          id: 2,
+          title: 'Piața Victoriei',
+          lat: 45.75399421815254,
+          lng: 21.225668417349045,
+          // icon: ,
+        },
+        {
+          id: 3,
+          title: 'Stadion',
+          lat: 45.740478738437055,
+          lng: 21.243871276341913,
+          // icon: ,
+        },
+        {
+          id: 4,
+          title: 'Heaven',
+          lat: 45.73977513872625,
+          lng: 21.248956661593834,
+          // icon: ,
+        },
+      ],
       tracking: false,
       compassHeading: 0,
     };
-    this._onInitialized = this._onInitialized.bind(this);
+    this._onTrackingUpdate = this._onTrackingUpdate.bind(this);
     this.getCurrentLocation = this.getCurrentLocation.bind(this);
     this.transformGpsToAR = this.transformGpsToAR.bind(this);
     this.latLongToMerc = this.latLongToMerc.bind(this);
     this.placeARObjects = this.placeARObjects.bind(this);
-    this.getNearbyPlaces = this.getNearbyPlaces.bind(this);
     this.listener = undefined;
   }
 
@@ -129,17 +156,14 @@ class HelloWorldSceneAR extends Component {
   getCurrentLocation = () => {
     if (this.state.cameraReady && this.state.locationReady) {
       const geoSuccess = (result) => {
-        this.setState(
-          {
-            location: result.coords,
-          },
-          this.getNearbyPlaces,
-        );
+        this.setState({
+          location: result.coords,
+        });
       };
 
       this.listener = Geolocation.watchPosition(geoSuccess, (error) => {}, {
         // distanceFilter: 500,
-        distanceFilter: 10,
+        distanceFilter: 1,
       });
     }
   };
@@ -180,54 +204,21 @@ class HelloWorldSceneAR extends Component {
     return {x: objDeltaX, z: -objDeltaY};
   };
 
-  getNearbyPlaces = () => {
-    let places = [
-      {
-        id: 1,
-        title: 'Auchan',
-        lat: 45.732921282277765,
-        lng: 21.261466912687162,
-      },
-      {
-        id: 2,
-        title: 'Piața Victoriei',
-        lat: 45.75399421815254,
-        lng: 21.225668417349045,
-        // icon: ,
-      },
-      {
-        id: 3,
-        title: 'Stadion',
-        lat: 45.740478738437055,
-        lng: 21.243871276341913,
-        // icon: ,
-      },
-      {
-        id: 4,
-        title: 'Heaven',
-        lat: 45.73977513872625,
-        lng: 21.248956661593834,
-        // icon: ,
-      },
-    ];
-
-    this.setState({nearbyPlaces: places});
-  };
-
   placeARObjects = () => {
-    if (this.state.nearbyPlaces.length === 0) {
+    if (!this.state.location) {
       return undefined;
     }
     console.log('placeARObjects');
 
     let ARTags = this.state.nearbyPlaces.map((item) => {
       const coords = this.transformGpsToAR(item.lat, item.lng);
-      const scale = Math.abs(Math.round(coords.z / 15));
+      // const scale = Math.abs(Math.round(coords.z / 15)) * 5;
+      const scale = 1;
       const distance = distanceBetweenPoints(this.state.location, {
         latitude: item.lat,
         longitude: item.lng,
       });
-      // console.log(coords);
+      console.log(coords);
       // coords.x = parseFloat(coords.x.toFixed(1));
       // coords.z = parseFloat(coords.z.toFixed(1));
 
@@ -235,13 +226,9 @@ class HelloWorldSceneAR extends Component {
         <ViroNode
           key={item.id}
           scale={[scale, scale, scale]}
-          rotation={[0, 0, 0]}
-          position={[coords.x, 0, coords.z]}
-          physicsBody={{
-            type: 'Kinematic',
-            mass: 0,
-            shape: {type: 'Compound'},
-          }}>
+          // rotation={[0, 45, 45]}
+          // position={[coords.x, 0, coords.z]}
+          position={[0, 0, -5]}>
           <ViroFlexView
             style={{alignItems: 'center', justifyContent: 'center'}}>
             <ViroText
@@ -257,19 +244,6 @@ class HelloWorldSceneAR extends Component {
               style={styles.helloWorldTextStyle}
               position={[0, -0.75, 0]}
             />
-            <ViroText
-              width={4}
-              height={0.5} //45.73977513872625, 21.248956661593834
-              text={`${Number(distance).toFixed(2)} km`}
-              style={styles.helloWorldTextStyle}
-              position={[0, -0.75, 0]}
-            />
-            {/*<ViroImage*/}
-            {/*  width={1}*/}
-            {/*  height={1}*/}
-            {/*  source={{uri: item.icon}}*/}
-            {/*  position={[0, -1.5, 0]}*/}
-            {/*/>*/}
           </ViroFlexView>
         </ViroNode>
       );
@@ -283,9 +257,10 @@ class HelloWorldSceneAR extends Component {
   shouldComponentUpdate(nextProps: Readonly<P>, nextState: Readonly<S>) {
     // console.log('Locations: ' + stringifySafe(this.state.nearbyPlaces));
     // console.log('Locations: ' + stringifySafe(nextState.nearbyPlaces));
+    // console.log(this.state.compassHeading);
     return (
+      // this.state.compassHeading !== nextState.compassHeading ||
       this.state.location !== nextState.location ||
-      this.state.nearbyPlaces !== nextState.nearbyPlaces ||
       this.state.tracking !== nextState.tracking
     );
     // return true;
@@ -293,7 +268,9 @@ class HelloWorldSceneAR extends Component {
 
   render() {
     return (
-      <ViroARScene onTrackingUpdated={this._onInitialized}>
+      <ViroARScene
+        anchorDetectionTypes={null}
+        onTrackingUpdated={this._onTrackingUpdate}>
         {this.state.locationReady &&
           this.state.cameraReady &&
           this.placeARObjects()}
@@ -301,8 +278,8 @@ class HelloWorldSceneAR extends Component {
     );
   }
 
-  _onInitialized(state, reason) {
-    console.log('_onInitialized');
+  _onTrackingUpdate(state, reason) {
+    console.log('_onTrackingUpdate');
     this.setState(
       {
         tracking:
